@@ -1,0 +1,6 @@
+- timing values
+- verbose levels
+- terminal parser
+- separate files
+- read png file
+- export mechanisms
