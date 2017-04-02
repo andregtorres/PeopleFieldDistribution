@@ -14,6 +14,8 @@ class Ppl(object):
         super(Ppl, self).__init__()
         self.x = int(x_*dimensions[0])
         self.y = int(y_*dimensions[1])
+        self.newX =0
+        self.newY=0
         self.a = a_
         self.b = b_
         self.v = v_
@@ -30,7 +32,7 @@ class Ppl(object):
                     else:
                         if not locked[x][y]:
                         #locked [x][y] = True
-                            grid[x][y] +=100
+                            grid[x][y] +=self.a/((10)**2)
     def takeFromGrid(self):
         for x, l in enumerate(grid):
             dx = abs(x-self.x)
@@ -44,7 +46,7 @@ class Ppl(object):
                     else:
                         if not locked[x][y]:
                         #locked [x][y] = True
-                            grid[x][y] -=100
+                            grid[x][y] -=self.a/((10)**2)
 
     def step(self):
         self.takeFromGrid()
@@ -53,6 +55,17 @@ class Ppl(object):
         self.x=int(round(self.x-gradx[oldX][oldY]*self.v))
         self.y=int(round(self.y-grady[oldX][oldY]*self.v))
         self.addToGrid()
+
+    def getNewCoordinates(self):
+        self.newX=int(round(self.x-gradx[self.x][self.y]*self.v))
+        self.newY=int(round(self.y-grady[self.x][self.y]*self.v))
+    def step2(self):
+        self.takeFromGrid()
+        self.x=self.newX
+        self.y=self.newY
+        self.addToGrid()
+
+
 
 Nx      = int((dimensions[0])/gridResol) #number of grid points
 Ny      = int((dimensions[1])/gridResol) #number of grid points
@@ -74,12 +87,12 @@ def setLims(field_, value1_, value2_):
                     field_[x][y]=value2_
 
 
-def plot():
+def plot(id_):
     fig = plt.figure()
     plt.contourf(np.transpose(grid))
     plt.colorbar()
     plt.grid()
-    plt.show()
+
 
 def plotGrad():
     fig = plt.figure(1)
@@ -106,33 +119,70 @@ def plotGrad2():
     plt.grid()
     plt.show()
 
+def plotY(y_):
+    fig=plt.figure()
+    plt.plot(grid[y_])
 
 def timeStep(dt_):
     global time, gradx, grady
     time+=dt_
     gradx,grady = np.gradient(grid)
+    print "\tCOMPUTING NEW COORDINATES"
+    for peep in peepz:
+        peep.getNewCoordinates()
+    print "\tSTEPPING"
+    for peep in peepz:
+        peep.step2()
 
-
+def printY():
+    yy=[]
+    for peep in peepz:
+        yy.append(peep.y)
+    print "\tY:", yy
 
 setLims(grid,100, -100)
 #setLims(gradx,100, -100)
 #setLims(grady,100, -100)
 setLims(locked, True, True)
 
-asdrubal    = Ppl(0.3,0.3, 1e4, 5e-8,20)
-anibal      = Ppl(0.3,0.34, 1e4, 5e-8,20)
-amilcar      = Ppl(0.32,0.32, 1e4, 5e-8,20)
-asdrubal.addToGrid()
-anibal.addToGrid()
-amilcar.addToGrid()
-for i in range(5):
-    timeStep(1)
-    asdrubal.step()
-    anibal.step()
-    amilcar.step()
+#asdrubal    = Ppl(0.3,0.3, 1e4, 5e-8,20)
+#anibal      = Ppl(0.3,0.34, 1e4, 5e-8,20)
+#amilcar      = Ppl(0.32,0.32, 1e4, 5e-8,20)
 
-plotGrad2()
+print "ADDING AGENTS"
+peepz=[]
+for i in range(5):
+    y=0.1+0.07*i
+    print "i=",i, "y=",y
+    peepz.append(Ppl(0.5,y,2e4,5e-8,20))
+    peepz[i].addToGrid()
+
+#print "GENERATING PLOT"
+#plot(1)
+#plotY(500)
+for i in range(20):
+    print "TIME STEPPING", i+1
+    timeStep(1)
+    printY()
+
+print "GENERATING PLOT"
+plotY(500)
+
+print "SHOWING PLOTS"
+plt.show()
+
+
+#asdrubal.addToGrid()
+#anibal.addToGrid()
+#amilcar.addToGrid()
+#for i in range(5):
+#    timeStep(1)
+#    asdrubal.step()
+#    anibal.step()
+#    amilcar.step()
+
+#plotGrad2()
 
 #print np.gradient(grid)
 #plotGrad2()
-plot()
+#plot()
