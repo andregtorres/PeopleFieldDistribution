@@ -16,17 +16,16 @@ class Agent(object):
     def addToGrid(self):
         for x, l in enumerate(l0.grid):
             dx = abs(x-self.x)
-            if  dx < 0.8*l0.dimensions[0]:
-                for y, c in enumerate(l):
-                    dy = abs(y-self.y)
-                    d  = np.sqrt(dx**2+dy**2)
-                    if d > 10:
-                        if not l0.locked[x][y]:
-                            l0.grid[x][y]+=self.a/((d)**2)
-                    else:
-                        if not l0.locked[x][y]:
-                        #l0.locked [x][y] = True
-                            l0.grid[x][y] +=self.a/((10)**2)
+            for y, c in enumerate(l):
+                dy = abs(y-self.y)
+                d  = np.sqrt(dx**2+dy**2)
+                if d > 10:
+                    if not l0.locked[x][y]:
+                        l0.grid[x][y]+=self.a/((d)**2)
+                else:
+                    if not l0.locked[x][y]:
+                    #l0.locked [x][y] = True
+                        l0.grid[x][y] +=self.a/((10)**2)
     def takeFromGrid(self):
         for x, l in enumerate(l0.grid):
             dx = abs(x-self.x)
@@ -38,9 +37,9 @@ class Agent(object):
                         if not l0.locked[x][y]:
                             l0.grid[x][y]-=self.a/((d)**2)
                     else:
-                        if not l0.locked[x][y]:
+                        #if not l0.locked[x][y]:
                         #l0.locked [x][y] = True
-                            l0.grid[x][y] -=self.a/((10)**2)
+                        l0.grid[x][y] -=self.a/((10)**2)
 
     def step(self):
         self.takeFromGrid()
