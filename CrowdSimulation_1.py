@@ -10,6 +10,8 @@ import outputs
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
 parser.add_argument("-a","--agents", type=int,
                     help='number of agents to add')
+parser.add_argument("-s","--steps", type=int,
+                    help='number of time steps')
 parser.add_argument("-v","--verbosity", type=int, choices=[0, 1, 2], help="increase output verbosity")
 
 args = parser.parse_args()
@@ -22,6 +24,9 @@ if args.verbosity:
 nAgents = 1
 if args.agents:
     nAgents = args.agents
+nSteps = 0
+if args.steps:
+    nSteps = args.steps
 
 
 
@@ -33,7 +38,7 @@ def setLims(field_, value1_, value2_):
             for y, c in enumerate(l):
                 if y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.:
                     field_[x][y]=value1_
-                if x == 0 and y>= (l0.Ny-l0.door)/2. and y<(l0.Ny+l0.door)/2:
+                if x==0 and  y>= (l0.Ny-l0.door)/2. and y<(l0.Ny+l0.door)/2:
                     field_[x][y]=value2_
 
 def timeStep(dt_):
@@ -47,34 +52,38 @@ def timeStep(dt_):
         peep.step2()
 
 
-
-setLims(l0.grid,100, -100)
+setLims(l0.grid,1000, -10000)
 #setLims(l0.gradx,100, -100)
 #setLims(l0.grady,100, -100)
 setLims(l0.locked, True, True)
 
-#asdrubal    = Agent(0.3,0.3, 1e4, 5e-8,20)
+#asdrubal    = Agent(0.3,0.3, 2e4, 5e-8,20)
 #anibal      = Agent(0.3,0.34, 1e4, 5e-8,20)
 #amilcar      = Agent(0.32,0.32, 1e4, 5e-8,20)
 
 if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
+
 for i in range(nAgents):
-    y=0.1+0.07*i
+    y=0.45+0.05*i
     if (verbose > 1) : print "i=",i, "y=",y
-    peepz.append(Agent(0.5,y,2e4,5e-8,20))
+    peepz.append(Agent(0.1,y,2e4,5e-8,20))
     peepz[i].addToGrid()
 
 #print "GENERATING PLOT"
 #out.plot(1)
 #out.plotY(500)
-for i in range(1):
+if (verbose > 0) : out.printY(peepz)
+for i in range(nSteps):
     if (verbose > 0) : print "TIME STEPPING", i+1
     timeStep(1)
-    if (verbose > 1) : out.printY(peepz)
+    if (verbose > 0) : out.printY(peepz)
+    out.save_plot(str(i))
 
-if (verbose > 0) : print "GENERATING PLOT"
-out.plotY(500)
+#if (verbose > 0) : print "GENERATING PLOT"
 
-if (verbose > 0) : print "SHOWING PLOTS"
-out.show()
+#out.plotY(500)
+
+#if (verbose > 0) : print "SHOWING PLOTS"
+#out.show([2])
+out.video_01("outputVideo2", 10)
