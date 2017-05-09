@@ -6,6 +6,7 @@ import numpy as np
 from thread import start_new_thread, allocate_lock
 import psutil
 import os
+from multiprocessing import Process, Queue
 
 #LOCAL HEADERS
 import level0 as l0
@@ -63,31 +64,36 @@ def timeStep(dt_):
     l0.time+=dt_
     l0.gradx,l0.grady = np.gradient(l0.grid)
     if (verbose > 1) : print "\tCOMPUTING NEW COORDINATES"
+    q=Queue()
+    npeepz=0
     for peep in peepz:
-        start_new_thread(peep.getNewCoordinates,())
-        #peep.getNewCoordinates()
-
-    #WAIT FOR THREADS
-    while l0.activeThreads > 0 : pass
+        Process(target=peep.getNewCoordinates, args=(q,npeepz)).start()
+        npeepz+=1
+    for i in range(npeepz):
+        (putOrder, newX, newY)= q.get()
+        peepz[putOrder].x=newX
+        peepz[putOrder].y=newY
 
     if (verbose > 1) : print "\tSTEPPING"
     l0.grid    = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
     setLims(l0.grid,1000, -10000)
+    npeepz=0
     for peep in peepz:
-        peep.step3()
+        Process(target=peep.step, args=(q,npeepz)).start()
+        npeepz+=1
+    for i in range(npeepz):
+        (putOrder, peepz[putOrder].grid)= q.get()
+        l0.grid+=peepz[putOrder].grid
 
-    #WAIT FOR THREADS
-    while l0.activeThreads > 0 : pass
+
+
+psutil.Process(os.getpid()).cpu_affinity([1,2,3])
 
 setLims(l0.grid,1000, -10000)
 setLims(l0.newGrid,1000, -10000)
-#setLims(l0.gradx,100, -100)
-#setLims(l0.grady,100, -100)
 setLims(l0.locked, True, True)
 
-#asdrubal    = Agent(0.3,0.3, 2e4, 5e-8,20)
-#anibal      = Agent(0.3,0.34, 1e4, 5e-8,20)
-#amilcar      = Agent(0.32,0.32, 1e4, 5e-8,20)
+
 
 if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
@@ -98,9 +104,7 @@ for i in range(nAgents):
     peepz.append(Agent(0.1,y,2e4,5e-8,20))
     peepz[i].addToGrid()
 
-#out.plot(1)
-#out.show([2])
-#out.plotY(500)
+
 if (verbose > 0) : out.printY(peepz)
 
 for i in range(nSteps):

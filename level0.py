@@ -1,5 +1,6 @@
 import numpy as np
 from thread import allocate_lock
+from multiprocessing import Lock
 
 dimensions  = [1000,1000]     #dimentions for box
 door = dimensions[0]/10.  #dimentions for door
@@ -16,5 +17,5 @@ time=0
 
 #THREADING
 activeThreads=0
-lockCounter = allocate_lock()
-lockGrid = allocate_lock()
+lockPrint = Lock()
+lockGrid = Lock()
