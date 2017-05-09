@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 #FOR MULTITHREADING
-import threading
+from thread import start_new_thread, allocate_lock
 import psutil
 import os
 
@@ -57,18 +57,30 @@ def setLims(field_, value1_, value2_):
                     #door
                     field_[x][y]=value2_
 
+
+
 def timeStep(dt_):
     l0.time+=dt_
     l0.gradx,l0.grady = np.gradient(l0.grid)
     if (verbose > 1) : print "\tCOMPUTING NEW COORDINATES"
     for peep in peepz:
-        peep.getNewCoordinates()
-    if (verbose > 1) : print "\tSTEPPING"
-    for peep in peepz:
-        peep.step2()
+        start_new_thread(peep.getNewCoordinates,())
+        #peep.getNewCoordinates()
 
+    #WAIT FOR THREADS
+    while l0.activeThreads > 0 : pass
+
+    if (verbose > 1) : print "\tSTEPPING"
+    l0.grid    = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
+    setLims(l0.grid,1000, -10000)
+    for peep in peepz:
+        peep.step3()
+
+    #WAIT FOR THREADS
+    while l0.activeThreads > 0 : pass
 
 setLims(l0.grid,1000, -10000)
+setLims(l0.newGrid,1000, -10000)
 #setLims(l0.gradx,100, -100)
 #setLims(l0.grady,100, -100)
 setLims(l0.locked, True, True)
@@ -86,10 +98,11 @@ for i in range(nAgents):
     peepz.append(Agent(0.1,y,2e4,5e-8,20))
     peepz[i].addToGrid()
 
-out.plot(1)
-out.show([2])
+#out.plot(1)
+#out.show([2])
 #out.plotY(500)
 if (verbose > 0) : out.printY(peepz)
+
 for i in range(nSteps):
     if (verbose > 0) : print "TIME STEPPING", i+1
     timeStep(1)
