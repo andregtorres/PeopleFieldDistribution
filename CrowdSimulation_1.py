@@ -51,8 +51,10 @@ def setLims(field_, value1_, value2_):
         if x <= l0.Nx/2. :
             for y, c in enumerate(l):
                 if y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.:
+                    #walls
                     field_[x][y]=value1_
                 if x==0 and  y>= (l0.Ny-l0.door)/2. and y<(l0.Ny+l0.door)/2:
+                    #door
                     field_[x][y]=value2_
 
 def timeStep(dt_):

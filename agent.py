@@ -52,6 +52,12 @@ class Agent(object):
     def getNewCoordinates(self):
         self.newX=int(round(self.x-l0.gradx[self.x][self.y]*self.v))
         self.newY=int(round(self.y-l0.grady[self.x][self.y]*self.v))
+        if self.newX > l0.dimensions[0] or self.newX < 0:
+            print "ERROR getNewCoordinates() out of bounds: newX= ",self.newX
+            self.newX = self.x
+        if self.newY > l0.dimensions[1] or self.newY < 0:
+            print "ERROR getNewCoordinates() out of bounds: newY= ",self.newY
+            self.newY = self.y
     def step2(self):
         self.takeFromGrid()
         self.x=self.newX
