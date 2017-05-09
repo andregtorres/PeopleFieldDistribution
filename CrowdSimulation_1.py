@@ -1,10 +1,23 @@
 import argparse
 import sys
 import numpy as np
+
+#FOR MULTITHREADING
+import threading
+import psutil
+import os
+
+#LOCAL HEADERS
 import level0 as l0
 import outputs as out
 from agent import Agent
 import outputs
+
+#DEFAULTS
+verbose     = 0
+nAgents     = 1
+nSteps      = 0
+video       = False
 
 #TERMINAL PARSER
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
@@ -13,21 +26,22 @@ parser.add_argument("-a","--agents", type=int,
 parser.add_argument("-s","--steps", type=int,
                     help='number of time steps')
 parser.add_argument("-v","--verbosity", type=int, choices=[0, 1, 2], help="increase output verbosity")
+parser.add_argument("-V","--video", action='store_true',
+                    help='Export video')
+
 
 args = parser.parse_args()
 if len(sys.argv) < 2:
     parser.print_help()
     sys.exit(2)
-verbose = 0
 if args.verbosity:
     verbose = args.verbosity
-nAgents = 1
 if args.agents:
     nAgents = args.agents
-nSteps = 0
 if args.steps:
     nSteps = args.steps
-
+if args.video:
+    video = True
 
 
 if (verbose > 1) : print "Nx,Ny= ",l0.Nx," , ",l0.Ny
@@ -70,15 +84,16 @@ for i in range(nAgents):
     peepz.append(Agent(0.1,y,2e4,5e-8,20))
     peepz[i].addToGrid()
 
-#print "GENERATING PLOT"
-#out.plot(1)
+out.plot(1)
+out.show([2])
 #out.plotY(500)
 if (verbose > 0) : out.printY(peepz)
 for i in range(nSteps):
     if (verbose > 0) : print "TIME STEPPING", i+1
     timeStep(1)
     if (verbose > 0) : out.printY(peepz)
-    out.save_plot(str(i))
+    if video:
+        out.save_plot(str(i))
 
 #if (verbose > 0) : print "GENERATING PLOT"
 
@@ -86,4 +101,6 @@ for i in range(nSteps):
 
 #if (verbose > 0) : print "SHOWING PLOTS"
 #out.show([2])
-out.video_01("outputVideo2", 10)
+if video :
+    print " +++++++  VIDEO  ++++++++"
+    out.video_01("outputVideo2", 10)
