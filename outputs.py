@@ -11,7 +11,8 @@ def show(ii_):
 #PLOTS FULL GRID
 def plot(id_):
     fig = plt.figure()
-    plt.contourf(np.transpose(l0.grid))
+    #plt.contourf(np.transpose(l0.grid))
+    plt.contourf(np.clip(np.transpose(l0.grid),0,250))
     plt.colorbar()
     plt.grid()
 
