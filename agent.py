@@ -13,7 +13,7 @@ class Agent(object):
         self.a = a_
         self.b = b_
         self.v = v_
-        self.grid = l0.newGrid
+        self.grid = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
 
     def addToGrid(self):
         for x, l in enumerate(l0.grid):

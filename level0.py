@@ -9,7 +9,7 @@ Nx      = int((dimensions[0])/gridResol) #number of grid points
 Ny      = int((dimensions[1])/gridResol) #number of grid points
 Npoints     = Nx*Ny
 grid    = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
-newGrid = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
+doorField = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
 locked  = np.zeros(Npoints, dtype=np.bool ).reshape(Nx, Ny)
 gradx   = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
 grady   = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)

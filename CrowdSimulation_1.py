@@ -59,6 +59,22 @@ def setLims(field_, value1_, value2_):
                 if x==0 and  y>= (l0.Ny-l0.door)/2. and y<(l0.Ny+l0.door)/2:
                     #door
                     field_[x][y]=value2_
+def setLims2(field_, value1_, value2_):
+    for x, l in enumerate(field_):
+        for y, c in enumerate(l):
+            if y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.:
+                #walls
+                if x <= l0.Nx/2. : field_[x][y]=value1_
+
+
+def getDoorField(value2_):
+    for x, l in enumerate(l0.doorField):
+        for y, c in enumerate(l):
+            if not(y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.):
+                dDoor= np.sqrt(x**2+(y- (l0.Ny+l0.door)/2.)**2)
+                l0.doorField[x][y]=(value2_ + dDoor)
+
+
 
 def inside(x_,y_):
     x=int(x_*l0.dimensions[0])
@@ -86,8 +102,10 @@ def timeStep(dt_):
         peepz[putOrder].y=newY
 
     if (verbose > 1) : print "\tSTEPPING"
+    #RESET GRID
     l0.grid    = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
-    setLims(l0.grid,1000, -10000)
+    setLims2(l0.grid,1000, -10000)
+    l0.grid+=l0.doorField
     npeepz=0
     for peep in peepz:
         Process(target=peep.step, args=(q,npeepz)).start()
@@ -100,15 +118,15 @@ def timeStep(dt_):
 
 psutil.Process(os.getpid()).cpu_affinity(cpus)
 
-setLims(l0.grid,1000, -10000)
-setLims(l0.newGrid,1000, -10000)
-setLims(l0.locked, True, True)
+getDoorField(-10000)
+setLims2(l0.grid,1000, -10000)
+l0.grid+=l0.doorField
+setLims2(l0.locked, True, True)
 
 
 if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
 for i in range(nAgents):
-    #y=0.45+0.05*i
     while True:
         y = random.uniform(0.45,0.75)
         x = random.uniform(0.45,0.75)
@@ -118,19 +136,21 @@ for i in range(nAgents):
     peepz[i].addToGrid()
     if (verbose > 1) : print "i=",i, "x=",peepz[i].x, "y=",peepz[i].y,"v=",int(v)
 
+if (verbose > 0) : out.printX(peepz)
 if (verbose > 0) : out.printY(peepz)
 
 for i in range(nSteps):
+
     if (verbose > 0) : print "TIME STEPPING", i+1
     timeStep(1)
+    if (verbose > 0) : out.printX(peepz)
     if (verbose > 0) : out.printY(peepz)
     if video:
         out.save_plot(str(i))
 
 #if (verbose > 0) : print "GENERATING PLOT"
 
-#out.plotY(500)
-
+#out.plotY(l0.grid,50)
 #if (verbose > 0) : print "SHOWING PLOTS"
 #out.show([2])
 if video :
