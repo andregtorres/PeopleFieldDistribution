@@ -1,6 +1,7 @@
 import argparse
 import sys
 import numpy as np
+import random
 
 #FOR MULTITHREADING
 from thread import start_new_thread, allocate_lock
@@ -19,6 +20,7 @@ verbose     = 0
 nAgents     = 1
 nSteps      = 0
 video       = False
+cpus        = [1,2,3]
 
 #TERMINAL PARSER
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
@@ -58,6 +60,15 @@ def setLims(field_, value1_, value2_):
                     #door
                     field_[x][y]=value2_
 
+def inside(x_,y_):
+    x=int(x_*l0.dimensions[0])
+    y=int(y_*l0.dimensions[1])
+    ok = not l0.locked[x,y-10]
+    ok = ok and (not l0.locked[x,y+10])
+    ok = ok and (not l0.locked[x,y])
+    ok = ok and (not l0.locked[x-10,y])
+    ok = ok and (not l0.locked[x+10,y])
+    return ok
 
 
 def timeStep(dt_):
@@ -87,23 +98,25 @@ def timeStep(dt_):
 
 
 
-psutil.Process(os.getpid()).cpu_affinity([1,2,3])
+psutil.Process(os.getpid()).cpu_affinity(cpus)
 
 setLims(l0.grid,1000, -10000)
 setLims(l0.newGrid,1000, -10000)
 setLims(l0.locked, True, True)
 
 
-
 if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
-
 for i in range(nAgents):
-    y=0.45+0.05*i
-    if (verbose > 1) : print "i=",i, "y=",y
-    peepz.append(Agent(0.1,y,2e4,5e-8,20))
+    #y=0.45+0.05*i
+    while True:
+        y = random.uniform(0.45,0.75)
+        x = random.uniform(0.45,0.75)
+        if inside(x,y): break
+    v = random.uniform(10,100)
+    peepz.append(Agent(x,y,2e4,5e-8,v))
     peepz[i].addToGrid()
-
+    if (verbose > 1) : print "i=",i, "x=",peepz[i].x, "y=",peepz[i].y,"v=",int(v)
 
 if (verbose > 0) : out.printY(peepz)
 
