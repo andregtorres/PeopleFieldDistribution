@@ -9,17 +9,20 @@ def show(ii_):
         plt.show(i)
 
 #PLOTS FULL GRID
-def plot(id_):
+def plot(field,clip):
     fig = plt.figure()
     #plt.contourf(np.transpose(l0.grid))
-    plt.contourf(np.clip(np.transpose(l0.grid),0,250))
+    if clip:
+        plt.contourf(np.clip(np.transpose(field),0,250))
+    else:
+        plt.contourf(np.transpose(field))
     plt.colorbar()
     plt.grid()
 
 #PLOTS FULL GRID AND SAVES PNG
 def save_plot(name_):
     fig = plt.figure()
-    plt.contourf(np.clip(np.transpose(l0.grid),0,250))
+    plt.contourf(np.clip(np.transpose(l0.grid-l0.doorField),0,250))
     plt.colorbar()
     plt.grid()
     name="aux/png/"+name_+".png"
@@ -52,14 +55,14 @@ def plotGrad2():
     plt.grid()
 
 #PLOTS GRID AT DESIRED X
-def plotY(x_):
+def plotY(field,x_):
     fig=plt.figure()
-    plt.plot(l0.grid[x_])
+    plt.plot(field[x_])
 
 #PLOTS GRID AT DESIRED Y
-def plotX(y_):
+def plotX(field, y_):
     fig=plt.figure()
-    plt.plot(np.transpose(l0.grid)[y_])
+    plt.plot(np.transpose(field)[y_])
 
 #PRINTS ALL Y COORDINATES
 def printY(peepz_):
@@ -67,6 +70,13 @@ def printY(peepz_):
     for peep in peepz_:
         yy.append(peep.y)
     print "\tY:", yy
+
+#PRINTS ALL X COORDINATES
+def printX(peepz_):
+    xx=[]
+    for peep in peepz_:
+        xx.append(peep.x)
+    print "\tX:", xx
 
 #CREATES VIDEO FROM NUMERAL
 def video_01(output_,fps_):
