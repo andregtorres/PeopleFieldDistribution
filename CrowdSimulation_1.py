@@ -59,21 +59,46 @@ def setLims(field_, value1_, value2_):
                 if x==0 and  y>= (l0.Ny-l0.door)/2. and y<(l0.Ny+l0.door)/2:
                     #door
                     field_[x][y]=value2_
+                if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
+                    #OBSTACLE
+                    field_[x][y]=value1_
 def setLims2(field_, value1_, value2_):
     for x, l in enumerate(field_):
         for y, c in enumerate(l):
             if y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.:
                 #walls
                 if x <= l0.Nx/2. : field_[x][y]=value1_
+            if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
+                #OBSTACLE
+                field_[x][y]=value1_
+def setWallField():
+    for x, l in enumerate(l0.locked):
+        if (x %100 == 0): print x
+        for y, point in enumerate(l):
+            if point:
+                applyField(x,y,4e3, 10)
 
+def applyField(x0,y0,a, ran):
+    for x in range(x0-ran,x0 + ran):
+        if x>0:
+            for y in range(y0-ran,y0 + ran):
+                if y>0:
+                    try:
+                        if (not l0.locked[x][y]) :
+                            d=np.sqrt((x0-x)**2+(y0-y)**2)
+                            if d > 0:
+                                z=a/((d)**2)
+                                if z>wallField[x][y]:
+                                    wallField[x][y]=z
 
+                    except:
+                        pass
 def getDoorField(value2_):
     for x, l in enumerate(l0.doorField):
         for y, c in enumerate(l):
-            if not(y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.):
-                dDoor= np.sqrt(x**2+(y- (l0.Ny+l0.door)/2.)**2)
+            if not(y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.) and not l0.locked[x][y]:
+                dDoor= np.sqrt(x**2+(y- (l0.Ny)/2.)**2)
                 l0.doorField[x][y]=(value2_ + dDoor)
-
 
 
 def inside(x_,y_):
@@ -103,9 +128,7 @@ def timeStep(dt_):
 
     if (verbose > 1) : print "\tSTEPPING"
     #RESET GRID
-    l0.grid    = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
-    setLims2(l0.grid,1000, -10000)
-    l0.grid+=l0.doorField
+    l0.grid=blank.copy()
     npeepz=0
     for peep in peepz:
         Process(target=peep.step, args=(q,npeepz)).start()
@@ -118,18 +141,26 @@ def timeStep(dt_):
 
 psutil.Process(os.getpid()).cpu_affinity(cpus)
 
-getDoorField(-10000)
+wallField  = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
 setLims2(l0.grid,1000, -10000)
-l0.grid+=l0.doorField
 setLims2(l0.locked, True, True)
-
+getDoorField(-10000)
+l0.grid+=l0.doorField
+print "SET WALLFIELD"
+setWallField()
+print "DONE"
+#out.plotX(wallField, 500)
+l0.grid+=wallField
+blank=l0.grid.copy()
+#out.plot(l0.grid, False)
+#out.show([1])
 
 if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
 for i in range(nAgents):
     while True:
-        y = random.uniform(0.45,0.75)
-        x = random.uniform(0.45,0.75)
+        y = random.uniform(0.25,0.75)
+        x = random.uniform(0.55,0.95)
         if inside(x,y): break
     v = random.uniform(10,100)
     peepz.append(Agent(x,y,2e4,5e-8,v))
@@ -138,6 +169,8 @@ for i in range(nAgents):
 
 if (verbose > 0) : out.printX(peepz)
 if (verbose > 0) : out.printY(peepz)
+
+
 
 for i in range(nSteps):
 
