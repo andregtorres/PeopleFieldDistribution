@@ -55,7 +55,7 @@ class Agent(object):
                                 self.grid[x][y] +=self.a/((self.radius)**2)
 
 
-    def getNewCoordinates(self, q, putOrder):
+    def getNewCoordinates(self, q, putOrder, verbose):
         #SET AFFINITY
         psutil.Process(os.getpid()).cpu_affinity([1,2,3])
 
@@ -68,12 +68,12 @@ class Agent(object):
                 self.newX=0
                 self.newY=0
                 l0.lockPrint.acquire()
-                if (verbose > 1) : print "\n\nAgent",self.id,"safe"
+                if (verbose > 1) : print "\t\tAgent",self.id,"safe"
                 l0.lockPrint.release()
             else:
                 l0.lockPrint.acquire()
-                if (verbose > 1) :print "\n\nERROR getNewCoordinates() out of bounds: newX= ",newX
-                if (verbose > 1) :print "\n\nERROR getNewCoordinates() out of bounds: newY= ",newY
+                if (verbose > 1) :print "\t\tERROR getNewCoordinates() out of bounds: newX= ",newX
+                if (verbose > 1) :print "\t\tERROR getNewCoordinates() out of bounds: newY= ",newY
                 l0.lockPrint.release()
                 newX = self.x
         if newY > l0.dimensions[1] or newY < 0:
