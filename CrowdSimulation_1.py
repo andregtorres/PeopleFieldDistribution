@@ -119,12 +119,20 @@ def timeStep(dt_):
     q=Queue()
     npeepz=0
     for peep in peepz:
-        Process(target=peep.getNewCoordinates, args=(q,npeepz)).start()
-        npeepz+=1
+        if not peep.safe:
+            Process(target=peep.getNewCoordinates, args=(q,npeepz)).start()
+            npeepz+=1
     for i in range(npeepz):
-        (putOrder, newX, newY)= q.get()
+        (putOrder, newX, newY, safe)= q.get()
         peepz[putOrder].x=newX
         peepz[putOrder].y=newY
+        peepz[putOrder].safe=safe
+
+    for peep in peepz:
+        if peep.safe:
+            peepz.remove(peep)
+            del peep
+
 
     if (verbose > 1) : print "\tSTEPPING"
     #RESET GRID
@@ -142,9 +150,9 @@ def timeStep(dt_):
 psutil.Process(os.getpid()).cpu_affinity(cpus)
 
 wallField  = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
-setLims2(l0.grid,1000, -10000)
+setLims2(l0.grid,1000, -1000)
 setLims2(l0.locked, True, True)
-getDoorField(-10000)
+getDoorField(-1000)
 l0.grid+=l0.doorField
 print "SET WALLFIELD"
 setWallField()
@@ -170,10 +178,7 @@ for i in range(nAgents):
 if (verbose > 0) : out.printX(peepz)
 if (verbose > 0) : out.printY(peepz)
 
-
-
 for i in range(nSteps):
-
     if (verbose > 0) : print "TIME STEPPING", i+1
     timeStep(1)
     if (verbose > 0) : out.printX(peepz)
