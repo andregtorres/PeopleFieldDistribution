@@ -13,8 +13,8 @@ class Agent(object):
         global agentCounter
         self.id=agentCounter
         agentCounter+=1
-        self.x = int(x_*l0.dimensions[0])
-        self.y = int(y_*l0.dimensions[1])
+        self.x = int(x_*l0.Nx)
+        self.y = int(y_*l0.Ny)
         self.a = a_
         self.b = b_
         self.v = v_
@@ -62,7 +62,7 @@ class Agent(object):
         newX=int(round(self.x-l0.gradx[self.x][self.y]*self.v))
         newY=int(round(self.y-l0.grady[self.x][self.y]*self.v))
         if newX > l0.dimensions[0] or newX < 0:
-            if newX < 0 and newY > l0.Ny/2.-l0.door/2. + self.radius and newY < l0.Ny/2.+l0.door/2. - self.radius:
+            if newX < 0 and newY > l0.Ny/2.-l0.door[2]/2. + self.radius and newY < l0.Ny/2.+l0.door[2]/2. - self.radius:
                 self.safe=True
                 self.grid=np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
                 self.newX=0

@@ -2,12 +2,13 @@ import numpy as np
 from thread import allocate_lock
 from multiprocessing import Lock
 
-dimensions  = [1000,1000]     #dimentions for box
-door = dimensions[0]/10.  #dimentions for door
-gridResol   = 1.           #grid resolution
+dimensions  = [700,400]     #dimentions for box in cm
+gridResol   = 1.           #grid resolution in cm/pixel
 Nx      = int((dimensions[0])/gridResol) #number of grid points
 Ny      = int((dimensions[1])/gridResol) #number of grid points
 Npoints     = Nx*Ny
+door= (0,Ny/2., 38)
+
 grid    = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
 doorField = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
 locked  = np.zeros(Npoints, dtype=np.bool ).reshape(Nx, Ny)

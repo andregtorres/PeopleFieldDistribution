@@ -21,6 +21,7 @@ nAgents     = 1
 nSteps      = 0
 video       = False
 cpus        = [1,2,3]
+exitAreaR   = 30
 
 #TERMINAL PARSER
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
@@ -31,6 +32,8 @@ parser.add_argument("-s","--steps", type=int,
 parser.add_argument("-v","--verbosity", type=int, choices=[0, 1, 2], help="increase output verbosity")
 parser.add_argument("-V","--video", action='store_true',
                     help='Export video')
+parser.add_argument("-r","--exitArea", type=int,
+                    help='Radius of the exit area')
 
 
 args = parser.parse_args()
@@ -45,6 +48,8 @@ if args.steps:
     nSteps = args.steps
 if args.video:
     video = True
+if args.exitArea:
+    exitAreaR = args.exitArea
 
 
 if (verbose > 1) : print "Nx,Ny= ",l0.Nx," , ",l0.Ny
@@ -53,24 +58,24 @@ def setLims(field_, value1_, value2_):
     for x, l in enumerate(field_):
         if x <= l0.Nx/2. :
             for y, c in enumerate(l):
-                if y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.:
+                if y >= x + (l0.Ny+l0.door[2])/2. or y < -x + (l0.Ny-l0.door[2])/2.:
                     #walls
                     field_[x][y]=value1_
-                if x==0 and  y>= (l0.Ny-l0.door)/2. and y<(l0.Ny+l0.door)/2:
+                if x==0 and  y>= (l0.Ny-l0.door[2])/2. and y<(l0.Ny+l0.door[2])/2:
                     #door
                     field_[x][y]=value2_
-                if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
-                    #OBSTACLE
-                    field_[x][y]=value1_
+                #if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
+                #    #OBSTACLE
+                #    field_[x][y]=value1_
 def setLims2(field_, value1_, value2_):
     for x, l in enumerate(field_):
         for y, c in enumerate(l):
-            if y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.:
+            if y >= x + (l0.Ny+l0.door[2])/2. or y < -x + (l0.Ny-l0.door[2])/2.:
                 #walls
                 if x <= l0.Nx/2. : field_[x][y]=value1_
-            if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
-                #OBSTACLE
-                field_[x][y]=value1_
+            #if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
+            #    #OBSTACLE
+            #    field_[x][y]=value1_
 def setWallField():
     for x, l in enumerate(l0.locked):
         if (x %100 == 0): print x
@@ -96,14 +101,14 @@ def applyField(x0,y0,a, ran):
 def getDoorField(value2_):
     for x, l in enumerate(l0.doorField):
         for y, c in enumerate(l):
-            if not(y >= x + (l0.Ny+l0.door)/2. or y < -x + (l0.Ny-l0.door)/2.) and not l0.locked[x][y]:
-                dDoor= np.sqrt(x**2+(y- (l0.Ny)/2.)**2)
+            if not(y >= x + (l0.Ny+l0.door[2])/2. or y < -x + (l0.Ny-l0.door[2])/2.) and not l0.locked[x][y]:
+                dDoor= np.sqrt((x-l0.door[0])**2+(y- l0.door[1])**2)
                 l0.doorField[x][y]=(value2_ + dDoor)
 
 
 def inside(x_,y_):
-    x=int(x_*l0.dimensions[0])
-    y=int(y_*l0.dimensions[1])
+    x=int(x_*l0.Nx)
+    y=int(y_*l0.Ny)
     ok = not l0.locked[x,y-10]
     ok = ok and (not l0.locked[x,y+10])
     ok = ok and (not l0.locked[x,y])
@@ -111,6 +116,11 @@ def inside(x_,y_):
     ok = ok and (not l0.locked[x+10,y])
     return ok
 
+def inExitArea(x,y):
+    if np.sqrt((x-l0.door[0])**2+((y-l0.door[1]))**2)<=exitAreaR:
+        return True
+    else:
+        return False
 
 def timeStep(dt_):
     l0.time+=dt_
@@ -120,7 +130,7 @@ def timeStep(dt_):
     npeepz=0
     for peep in peepz:
         if not peep.safe:
-            Process(target=peep.getNewCoordinates, args=(q,npeepz)).start()
+            Process(target=peep.getNewCoordinates, args=(q,npeepz,verbose)).start()
             npeepz+=1
     for i in range(npeepz):
         (putOrder, newX, newY, safe)= q.get()
