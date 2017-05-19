@@ -21,12 +21,13 @@ def plot(field,clip):
 
 #PLOTS FULL GRID AND SAVES PNG
 def save_plot(name_):
-    fig = plt.figure()
+    fig = plt.figure(figsize=(l0.dimensions[0]/100,l0.dimensions[1]/100))
     plt.contourf(np.clip(np.transpose(l0.grid-l0.doorField),0,250))
     plt.colorbar()
     plt.grid()
+    plt.axes().set_aspect('equal')
     name="aux/png/"+name_+".png"
-    plt.savefig(name)
+    plt.savefig(name, dpi=100)
     plt.clf()
 
 
