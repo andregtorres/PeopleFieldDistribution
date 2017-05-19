@@ -69,14 +69,14 @@ def plotX(field, y_):
 def printY(peepz_):
     yy=[]
     for peep in peepz_:
-        yy.append(peep.y)
+        yy.append(int(round(peep.y)))
     print "\tY:", yy
 
 #PRINTS ALL X COORDINATES
 def printX(peepz_):
     xx=[]
     for peep in peepz_:
-        xx.append(peep.x)
+        xx.append(int(round(peep.x)))
     print "\tX:", xx
 
 #CREATES VIDEO FROM NUMERAL
