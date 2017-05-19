@@ -21,7 +21,9 @@ nAgents     = 1
 nSteps      = 0
 video       = False
 cpus        = [1,2,3]
-exitAreaR   = 30
+exitAreaR   = 30 #cm
+dt          = 1 #s
+wallPot     =1000
 
 #TERMINAL PARSER
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
@@ -32,8 +34,10 @@ parser.add_argument("-s","--steps", type=int,
 parser.add_argument("-v","--verbosity", type=int, choices=[0, 1, 2], help="increase output verbosity")
 parser.add_argument("-V","--video", action='store_true',
                     help='Export video')
-parser.add_argument("-r","--exitArea", type=int,
+parser.add_argument("-r","--exitArea", type=float,
                     help='Radius of the exit area')
+parser.add_argument("-t","--dt", type=float,
+                    help='Time step in s')
 
 
 args = parser.parse_args()
@@ -50,38 +54,35 @@ if args.video:
     video = True
 if args.exitArea:
     exitAreaR = args.exitArea
+if args.exitArea:
+    dt = args.dt
 
 
 if (verbose > 1) : print "Nx,Ny= ",l0.Nx," , ",l0.Ny
+if (verbose > 1) : print "time resolution= ",dt, "s"
+if (verbose > 1) : print "time steps", nSteps
 
-def setLims(field_, value1_, value2_):
-    for x, l in enumerate(field_):
-        if x <= l0.Nx/2. :
-            for y, c in enumerate(l):
-                if y >= x + (l0.Ny+l0.door[2])/2. or y < -x + (l0.Ny-l0.door[2])/2.:
-                    #walls
-                    field_[x][y]=value1_
-                if x==0 and  y>= (l0.Ny-l0.door[2])/2. and y<(l0.Ny+l0.door[2])/2:
-                    #door
-                    field_[x][y]=value2_
-                #if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
-                #    #OBSTACLE
-                #    field_[x][y]=value1_
-def setLims2(field_, value1_, value2_):
+def SetLims(field_, value1_, value2_):
     for x, l in enumerate(field_):
         for y, c in enumerate(l):
-            if y >= x + (l0.Ny+l0.door[2])/2. or y < -x + (l0.Ny-l0.door[2])/2.:
-                #walls
-                if x <= l0.Nx/2. : field_[x][y]=value1_
+            #Triangular ramp walls
+            #if y >= x + (l0.Ny+l0.door[2])/2. or y < -x + (l0.Ny-l0.door[2])/2.:
+            #    if x <= l0.Nx/2. : field_[x][y]=value1_
+
+            #OBSTACLE
             #if x>0.3*l0.Nx and x< 0.4*l0.Nx and y>0.45*l0.Ny and y< 0.55*l0.Ny:
-            #    #OBSTACLE
             #    field_[x][y]=value1_
+
+            #STRAIGHT walls
+            if (x >= l0.door[0] and x < l0.door[0] + l0.cm(5) ) and (y>l0.door[1]+l0.door[2]/2 or y<l0.door[1]-l0.door[2]/2) :
+                field_[x][y]=value1_
+
 def setWallField():
     for x, l in enumerate(l0.locked):
-        if (x %100 == 0): print x
+        if (x %50 == 0 and verbose > 1 ): print x
         for y, point in enumerate(l):
             if point:
-                applyField(x,y,4e3, 10)
+                applyField(x,y,wallPot, 25)
 
 def applyField(x0,y0,a, ran):
     for x in range(x0-ran,x0 + ran):
@@ -92,16 +93,14 @@ def applyField(x0,y0,a, ran):
                         if (not l0.locked[x][y]) :
                             d=np.sqrt((x0-x)**2+(y0-y)**2)
                             if d > 0:
-                                z=a/((d)**2)
-                                if z>wallField[x][y]:
-                                    wallField[x][y]=z
+                                wallField[x][y]+=a/((d)**2)/(2*ran+1.0)
 
                     except:
                         pass
 def getDoorField(value2_):
     for x, l in enumerate(l0.doorField):
         for y, c in enumerate(l):
-            if not(y >= x + (l0.Ny+l0.door[2])/2. or y < -x + (l0.Ny-l0.door[2])/2.) and not l0.locked[x][y]:
+            if not l0.locked[x][y]:
                 dDoor= np.sqrt((x-l0.door[0])**2+(y- l0.door[1])**2)
                 l0.doorField[x][y]=(value2_ + dDoor)
 
@@ -124,7 +123,7 @@ def inExitArea(x,y):
 
 def timeStep(dt_):
     l0.time+=dt_
-    l0.gradx,l0.grady = np.gradient(l0.grid)
+    l0.gradx,l0.grady = np.dot(np.gradient(l0.grid),dt_)
     if (verbose > 1) : print "\tCOMPUTING NEW COORDINATES"
     q=Queue()
     npeepz=0
@@ -132,6 +131,7 @@ def timeStep(dt_):
         if not peep.safe:
             Process(target=peep.getNewCoordinates, args=(q,npeepz,verbose)).start()
             npeepz+=1
+
     for i in range(npeepz):
         (putOrder, newX, newY, safe)= q.get()
         peepz[putOrder].x=newX
@@ -142,7 +142,6 @@ def timeStep(dt_):
         if peep.safe:
             peepz.remove(peep)
             del peep
-
 
     if (verbose > 1) : print "\tSTEPPING"
     #RESET GRID
@@ -156,19 +155,21 @@ def timeStep(dt_):
         l0.grid+=peepz[putOrder].grid
 
 
-
 psutil.Process(os.getpid()).cpu_affinity(cpus)
 
 wallField  = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
-setLims2(l0.grid,1000, -1000)
-setLims2(l0.locked, True, True)
-getDoorField(-1000)
+SetLims(l0.grid,wallPot, -wallPot)
+SetLims(l0.locked, True, True)
+out.plotX(l0.grid,30)
+getDoorField(-wallPot)
 l0.grid+=l0.doorField
+out.plotX(l0.grid,30)
 print "SET WALLFIELD"
 setWallField()
 print "DONE"
 #out.plotX(wallField, 500)
 l0.grid+=wallField
+out.plotX(l0.grid,30)
 blank=l0.grid.copy()
 #out.plot(l0.grid, False)
 #out.show([1])
@@ -180,17 +181,23 @@ for i in range(nAgents):
         y = random.uniform(0.25,0.75)
         x = random.uniform(0.55,0.95)
         if inside(x,y): break
-    v = random.uniform(10,100)
+    v = random.uniform(9.8,10.2)
     peepz.append(Agent(x,y,2e4,5e-8,v))
     peepz[i].addToGrid()
-    if (verbose > 1) : print "i=",i, "x=",peepz[i].x, "y=",peepz[i].y,"v=",int(v)
+    if (verbose > 1) : print "i=",i, "x=",peepz[i].x, "y=",peepz[i].y,"v=",v
 
 if (verbose > 0) : out.printX(peepz)
 if (verbose > 0) : out.printY(peepz)
 
+out.plotY(l0.grid,4)
+out.plotY(l0.grid,5)
+out.plotY(l0.grid,6)
+
+out.show([1])
+
 for i in range(nSteps):
     if (verbose > 0) : print "TIME STEPPING", i+1
-    timeStep(1)
+    timeStep(dt)
     if (verbose > 0) : out.printX(peepz)
     if (verbose > 0) : out.printY(peepz)
     if video:
@@ -198,7 +205,7 @@ for i in range(nSteps):
 
 #if (verbose > 0) : print "GENERATING PLOT"
 
-#out.plotY(l0.grid,50)
+#out.plotY(l0.grid,peepz[0].x)
 #if (verbose > 0) : print "SHOWING PLOTS"
 #out.show([2])
 if video :
