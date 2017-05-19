@@ -18,6 +18,10 @@ locked  = np.zeros(Npoints, dtype=np.bool ).reshape(Nx, Ny)
 gradx   = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
 grady   = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
 time=0
+exitAreaR   = 30 #cm
+dt          = 1 #s
+JBuffer=[]
+rohBuffer=[]
 
 #THREADING
 activeThreads=0

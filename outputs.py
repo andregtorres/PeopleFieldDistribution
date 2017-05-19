@@ -84,3 +84,24 @@ def video_01(output_,fps_):
     cmd= "ffmpeg -framerate "+str(fps_)+" -i aux/png/%d.png aux/" + output_ + ".mp4"
     os.system(cmd)
     os.system("rm aux/png/*")
+
+#PLOT ROH AND J
+def plotGraphs(n=5, m=0):
+    fig=plt.figure()
+    timeN=range((n-1)/2,len(l0.JBuffer)-(n-1)/2,l0.dt)
+    if m != 0: timeM=range((m-1)/2,len(l0.JBuffer)-(m-1)/2,l0.dt)
+    plt.subplot(211)
+    if m != 0:
+        plt.plot(timeN,movingAverage(l0.JBuffer,n),timeM,movingAverage(l0.JBuffer,m))
+    else:
+        plt.plot(timeN,movingAverage(l0.JBuffer,n))
+    plt.subplot(212)
+    if m != 0:
+        plt.plot(timeN,movingAverage(l0.rohBuffer,n),timeM,movingAverage(l0.rohBuffer,m))
+    else:
+        plt.plot(timeN,movingAverage(l0.rohBuffer,n))
+
+def movingAverage(a, n=3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n

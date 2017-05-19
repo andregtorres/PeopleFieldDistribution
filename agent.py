@@ -69,14 +69,14 @@ class Agent(object):
                 l0.lockPrint.release()
             else:
                 l0.lockPrint.acquire()
-                if (verbose > 1) :print "\t\tERROR getNewCoordinates() out of bounds: newX= ",newX
-                if (verbose > 1) :print "\t\tERROR getNewCoordinates() out of bounds: newY= ",newY
+                if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newX= ",newX
+                if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newY= ",newY
                 l0.lockPrint.release()
                 newX = self.x #TODO
         if newY > l0.Ny or newY < 0:
             l0.lockPrint.acquire()
-            if (verbose > 1) :print "\t\tprint "ERROR getNewCoordinates() out of bounds: newX= ",newX
-            if (verbose > 1) :print "\t\tprint "ERROR getNewCoordinates() out of bounds: newY= ",newY
+            if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newX= ",newX
+            if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newY= ",newY
             l0.lockPrint.release()
             newY = self.y  #TODO
 
@@ -87,3 +87,8 @@ class Agent(object):
         psutil.Process(os.getpid()).cpu_affinity([1,2,3])
         self.computeGrid()
         q.put((putOrder,self.grid))
+    def inExitArea(self):
+        if np.sqrt((self.x-l0.door[0])**2+((self.y-l0.door[1]))**2)<=l0.exitAreaR:
+            return True
+        else:
+            return False

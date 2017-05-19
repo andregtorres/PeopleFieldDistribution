@@ -21,8 +21,6 @@ nAgents     = 1
 nSteps      = 0
 video       = False
 cpus        = [1,2,3]
-exitAreaR   = 30 #cm
-dt          = 1 #s
 wallPot     =1000
 
 #TERMINAL PARSER
@@ -53,13 +51,13 @@ if args.steps:
 if args.video:
     video = True
 if args.exitArea:
-    exitAreaR = args.exitArea
+    l0.exitAreaR = args.exitArea
 if args.exitArea:
-    dt = args.dt
+    l0.dt = args.dt
 
 
 if (verbose > 1) : print "Nx,Ny= ",l0.Nx," , ",l0.Ny
-if (verbose > 1) : print "time resolution= ",dt, "s"
+if (verbose > 1) : print "time resolution= ",l0.dt, "s"
 if (verbose > 1) : print "time steps", nSteps
 
 def SetLims(field_, value1_, value2_):
@@ -105,6 +103,7 @@ def getDoorField(value2_):
                 l0.doorField[x][y]=(value2_ + dDoor)
 
 
+
 def inside(x_,y_):
     x=int(x_*l0.Nx)
     y=int(y_*l0.Ny)
@@ -115,11 +114,7 @@ def inside(x_,y_):
     ok = ok and (not l0.locked[x+10,y])
     return ok
 
-def inExitArea(x,y):
-    if np.sqrt((x-l0.door[0])**2+((y-l0.door[1]))**2)<=exitAreaR:
-        return True
-    else:
-        return False
+
 
 def timeStep(dt_):
     l0.time+=dt_
@@ -138,12 +133,21 @@ def timeStep(dt_):
         peepz[putOrder].y=newY
         peepz[putOrder].safe=safe
 
+    J=0.
+    roh=0.
     for peep in peepz:
         if peep.safe:
             peepz.remove(peep)
             del peep
+            J+=1.
+        elif peep.inExitArea():
+            roh+=1.
+    roh=roh/l0.exitAreaR**2/np.pi/2.*10000.
+    J=J*dt_
+    l0.JBuffer.append(J)
+    l0.rohBuffer.append(roh)
+    if (verbose > 1) : print "\t\troh:",roh,"J:", J
 
-    if (verbose > 1) : print "\tSTEPPING"
     #RESET GRID
     l0.grid=blank.copy()
     npeepz=0
@@ -160,16 +164,13 @@ psutil.Process(os.getpid()).cpu_affinity(cpus)
 wallField  = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
 SetLims(l0.grid,wallPot, -wallPot)
 SetLims(l0.locked, True, True)
-out.plotX(l0.grid,30)
 getDoorField(-wallPot)
 l0.grid+=l0.doorField
-out.plotX(l0.grid,30)
 print "SET WALLFIELD"
 setWallField()
 print "DONE"
 #out.plotX(wallField, 500)
 l0.grid+=wallField
-out.plotX(l0.grid,30)
 blank=l0.grid.copy()
 #out.plot(l0.grid, False)
 #out.show([1])
@@ -178,8 +179,8 @@ if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
 for i in range(nAgents):
     while True:
-        y = random.uniform(0.25,0.75)
-        x = random.uniform(0.55,0.95)
+        y = random.uniform(0.2,0.8)
+        x = random.uniform(0.1,0.8)
         if inside(x,y): break
     v = random.uniform(9.8,10.2)
     peepz.append(Agent(x,y,2e4,5e-8,v))
@@ -189,15 +190,10 @@ for i in range(nAgents):
 if (verbose > 0) : out.printX(peepz)
 if (verbose > 0) : out.printY(peepz)
 
-out.plotY(l0.grid,4)
-out.plotY(l0.grid,5)
-out.plotY(l0.grid,6)
-
-out.show([1])
 
 for i in range(nSteps):
     if (verbose > 0) : print "TIME STEPPING", i+1
-    timeStep(dt)
+    timeStep(l0.dt)
     if (verbose > 0) : out.printX(peepz)
     if (verbose > 0) : out.printY(peepz)
     if video:
@@ -205,9 +201,9 @@ for i in range(nSteps):
 
 #if (verbose > 0) : print "GENERATING PLOT"
 
-#out.plotY(l0.grid,peepz[0].x)
+out.plotGraphs(5,7)
 #if (verbose > 0) : print "SHOWING PLOTS"
-#out.show([2])
+out.show([2])
 if video :
     print " +++++++  VIDEO  ++++++++"
     out.video_01("outputVideo2", 10)
