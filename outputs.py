@@ -28,7 +28,8 @@ def save_plot(name_):
     plt.axes().set_aspect('equal')
     name="aux/png/"+name_+".png"
     plt.savefig(name, dpi=100)
-    plt.clf()
+    #plt.clf()
+    plt.close()
 
 
 #PLOTS GRADIENT DECIMATED
@@ -90,14 +91,18 @@ def plotGraphs(n=5, m=0):
     fig=plt.figure()
     timeN=range((n-1)/2,len(l0.JBuffer)-(n-1)/2,l0.dt)
     if m != 0: timeM=range((m-1)/2,len(l0.JBuffer)-(m-1)/2,l0.dt)
-    plt.subplot(211)
+    ax=plt.subplot(211)
+    plt.setp(ax.get_xticklabels(), visible=False)
+    ax.set_ylabel(r"$J \. (s^{-1})$")
     if m != 0:
-        plt.plot(timeN,movingAverage(l0.JBuffer,n),timeM,movingAverage(l0.JBuffer,m))
+        plt.plot(timeN,movingAverage(l0.JBuffer,n),'k-',timeM,movingAverage(l0.JBuffer,m),'k--',alpha=0.7)
     else:
         plt.plot(timeN,movingAverage(l0.JBuffer,n))
-    plt.subplot(212)
+    ax=plt.subplot(212)
+    ax.set_ylabel(r'$\rho \. (m^{-2})$')
+    ax.set_xlabel("t (s)")
     if m != 0:
-        plt.plot(timeN,movingAverage(l0.rohBuffer,n),timeM,movingAverage(l0.rohBuffer,m))
+        plt.plot(timeN,movingAverage(l0.rohBuffer,n),'k-',timeM,movingAverage(l0.rohBuffer,m),'k--',alpha=0.7)
     else:
         plt.plot(timeN,movingAverage(l0.rohBuffer,n))
 
