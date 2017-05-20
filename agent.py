@@ -20,7 +20,7 @@ class Agent(object):
         self.v = v_/l0.gridResol
         self.grid = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
         self.safe=False
-        self.radius=7./l0.gridResol
+        self.radius=10./l0.gridResol
     def __del__(self):
         self.grid=None
 
