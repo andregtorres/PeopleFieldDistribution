@@ -71,14 +71,14 @@ def printY(peepz_):
     yy=[]
     for peep in peepz_:
         yy.append(int(round(peep.y)))
-    print "\tY:", yy
+    print "\t\tY:", yy
 
 #PRINTS ALL X COORDINATES
 def printX(peepz_):
     xx=[]
     for peep in peepz_:
         xx.append(int(round(peep.x)))
-    print "\tX:", xx
+    print "\t\tX:", xx
 
 #CREATES VIDEO FROM NUMERAL
 def video_01(output_,fps_):
@@ -87,24 +87,26 @@ def video_01(output_,fps_):
     os.system("rm aux/png/*")
 
 #PLOT ROH AND J
-def plotGraphs(n=5, m=0):
+def plotGraphs(n=5, m=0, save=False):
     fig=plt.figure()
-    timeN=range((n-1)/2,len(l0.JBuffer)-(n-1)/2,l0.dt)
-    if m != 0: timeM=range((m-1)/2,len(l0.JBuffer)-(m-1)/2,l0.dt)
+    timeN=[x*l0.dt for x in range((n-1)/2,len(l0.JBuffer)-(n-1)/2,1)]
+    if m != 0: timeM=[x*l0.dt for x in range((m-1)/2,len(l0.JBuffer)-(m-1)/2,1)]
     ax=plt.subplot(211)
     plt.setp(ax.get_xticklabels(), visible=False)
-    ax.set_ylabel(r"$J \. (s^{-1})$")
+    ax.set_ylabel(r" J $(s^{-1})$")
     if m != 0:
         plt.plot(timeN,movingAverage(l0.JBuffer,n),'k-',timeM,movingAverage(l0.JBuffer,m),'k--',alpha=0.7)
     else:
         plt.plot(timeN,movingAverage(l0.JBuffer,n))
     ax=plt.subplot(212)
-    ax.set_ylabel(r'$\rho \. (m^{-2})$')
+    ax.set_ylabel(r'$\rho (m^{-2})$')
     ax.set_xlabel("t (s)")
     if m != 0:
         plt.plot(timeN,movingAverage(l0.rohBuffer,n),'k-',timeM,movingAverage(l0.rohBuffer,m),'k--',alpha=0.7)
     else:
         plt.plot(timeN,movingAverage(l0.rohBuffer,n))
+    name="aux/JRho_"+str(n)+"_"+str(m)+".png"
+    if save: plt.savefig(name, dpi=100)
 
 def movingAverage(a, n=3) :
     ret = np.cumsum(a, dtype=float)
