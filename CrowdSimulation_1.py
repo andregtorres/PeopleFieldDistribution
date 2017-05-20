@@ -22,6 +22,7 @@ nSteps      = 0
 video       = False
 cpus        = [1,2,3]
 wallPot     =1000
+respawn     = False
 
 #TERMINAL PARSER
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
@@ -36,6 +37,8 @@ parser.add_argument("-r","--exitArea", type=float,
                     help='Radius of the exit area')
 parser.add_argument("-t","--dt", type=float,
                     help='Time step in s')
+parser.add_argument("-R","--respawn", action='store_true',
+                    help='Agents respawn')
 
 
 args = parser.parse_args()
@@ -54,6 +57,8 @@ if args.exitArea:
     l0.exitAreaR = args.exitArea
 if args.exitArea:
     l0.dt = args.dt
+if args.respawn:
+    respawn = True
 
 
 if (verbose > 1) : print "Nx,Ny= ",l0.Nx," , ",l0.Ny
@@ -107,18 +112,33 @@ def getDoorField(value2_):
 def inside(x_,y_):
     x=int(x_*l0.Nx)
     y=int(y_*l0.Ny)
-    ok = not l0.locked[x,y-10]
-    ok = ok and (not l0.locked[x,y+10])
-    ok = ok and (not l0.locked[x,y])
-    ok = ok and (not l0.locked[x-10,y])
-    ok = ok and (not l0.locked[x+10,y])
+    try:
+        ok = not l0.locked[x,y-10]
+        ok = ok and (not l0.locked[x,y+10])
+        ok = ok and (not l0.locked[x,y])
+        ok = ok and (not l0.locked[x-10,y])
+        ok = ok and (not l0.locked[x+10,y])
+    except:
+        ok=False
     return ok
 
 
-
 def timeStep(dt_):
+    #STEP TIME
     l0.time+=dt_
+
+    #RESPAWN
+    if respawn:
+        diff=nAgents - len(peepz)
+        while diff > 0:
+            addAgent(0.1,0.9,0.9,0.99)
+            diff-=1
+
+
+    #COMPUTE GRADIENTS
     l0.gradx,l0.grady = np.dot(np.gradient(l0.grid),dt_)
+
+    #GET NEW COORDITANTES
     if (verbose > 1) : print "\tCOMPUTING NEW COORDINATES"
     q=Queue()
     npeepz=0
@@ -126,13 +146,13 @@ def timeStep(dt_):
         if not peep.safe:
             Process(target=peep.getNewCoordinates, args=(q,npeepz,verbose)).start()
             npeepz+=1
-
     for i in range(npeepz):
         (putOrder, newX, newY, safe)= q.get()
         peepz[putOrder].x=newX
         peepz[putOrder].y=newY
         peepz[putOrder].safe=safe
 
+    #COMPUTE PARAMETERS AND DEAL WITH SAFE
     J=0.
     roh=0.
     for peep in peepz:
@@ -158,6 +178,16 @@ def timeStep(dt_):
         (putOrder, peepz[putOrder].grid)= q.get()
         l0.grid+=peepz[putOrder].grid
 
+def addAgent(y1,y2,x1,x2):
+    while True:
+        y = random.uniform(y1,y2)
+        x = random.uniform(x1,x2)
+        if inside(x,y): break
+    v = random.uniform(9.8,10.2)
+    peepz.append(Agent(x,y,2e4,5e-8,v))
+    peepz[len(peepz)-1].addToGrid()
+    if (verbose > 1) : print "i=",peepz[len(peepz)-1].id, "x=",peepz[len(peepz)-1].x, "y=",peepz[len(peepz)-1].y,"v=",v
+
 
 psutil.Process(os.getpid()).cpu_affinity(cpus)
 
@@ -178,14 +208,7 @@ blank=l0.grid.copy()
 if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
 for i in range(nAgents):
-    while True:
-        y = random.uniform(0.2,0.8)
-        x = random.uniform(0.1,0.8)
-        if inside(x,y): break
-    v = random.uniform(9.8,10.2)
-    peepz.append(Agent(x,y,2e4,5e-8,v))
-    peepz[i].addToGrid()
-    if (verbose > 1) : print "i=",i, "x=",peepz[i].x, "y=",peepz[i].y,"v=",v
+    addAgent(0.1,0.9,0.1,0.9)
 
 if (verbose > 0) : out.printX(peepz)
 if (verbose > 0) : out.printY(peepz)
