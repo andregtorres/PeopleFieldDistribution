@@ -21,8 +21,10 @@ nAgents     = 1
 nSteps      = 0
 video       = False
 cpus        = [1,2,3]
-wallPot     =1000
+wallPot     =100
 respawn     = False
+globalJ     =0
+avgRho      =0
 
 #TERMINAL PARSER
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
@@ -39,6 +41,8 @@ parser.add_argument("-t","--dt", type=float,
                     help='Time step in s')
 parser.add_argument("-R","--respawn", action='store_true',
                     help='Agents respawn')
+parser.add_argument("-p","--potential", type=float,
+                    help='Agent potential paramenter')
 
 
 args = parser.parse_args()
@@ -59,6 +63,8 @@ if args.dt:
     l0.dt = args.dt
 if args.respawn:
     respawn = True
+if args.potential:
+    l0.a = args.potential
 
 
 if (verbose > 1) : print "Nx,Ny= ",l0.Nx," , ",l0.Ny
@@ -123,9 +129,11 @@ def inside(x_,y_):
     return ok
 
 
-def timeStep(dt_):
+def timeStep():
     #STEP TIME
-    l0.time+=dt_
+    l0.time+=l0.dt
+    global avgRho
+    global globalJ
 
     #RESPAWN
     if respawn:
@@ -136,7 +144,7 @@ def timeStep(dt_):
 
 
     #COMPUTE GRADIENTS
-    l0.gradx,l0.grady = np.dot(np.gradient(l0.grid),dt_)
+    l0.gradx,l0.grady = np.dot(np.gradient(l0.grid),l0.dt)
 
     #GET NEW COORDITANTES
     if (verbose > 1) : print "\tCOMPUTING NEW COORDINATES"
@@ -154,19 +162,22 @@ def timeStep(dt_):
 
     #COMPUTE PARAMETERS AND DEAL WITH SAFE
     J=0.
-    roh=0.
+    rho=0.
     for peep in peepz:
+        if peep.inExitArea():
+            rho+=1.
         if peep.safe:
+            if (verbose >0) : print "\t\tAgent",peep.id,"safe"
             peepz.remove(peep)
             del peep
             J+=1.
-        elif peep.inExitArea():
-            roh+=1.
-    roh=roh/l0.exitAreaR**2/np.pi/2.*10000.
-    J=J*dt_
+            globalJ+=1.
+    rho=rho/l0.exitAreaR**2/np.pi/2.*10000.
+    avgRho+=rho
+    J=J/l0.dt
     l0.JBuffer.append(J)
-    l0.rohBuffer.append(roh)
-    if (verbose > 0) : print "\troh:",roh,"J:", J
+    l0.rhoBuffer.append(rho)
+    if (verbose > 0) : print "\trho:",rho,"J:", J
 
     #RESET GRID
     l0.grid=blank.copy()
@@ -183,10 +194,10 @@ def addAgent(y1,y2,x1,x2):
         y = random.uniform(y1,y2)
         x = random.uniform(x1,x2)
         if inside(x,y): break
-    v = random.uniform(9.8,10.2)
-    peepz.append(Agent(x,y,2e4,5e-8,v))
+    v = random.uniform(50,55)
+    peepz.append(Agent(x,y,l0.a,5e-8,v))
     peepz[len(peepz)-1].addToGrid()
-    if (verbose > 1) : print "i=",peepz[len(peepz)-1].id, "x=",peepz[len(peepz)-1].x, "y=",peepz[len(peepz)-1].y,"v=",v
+    if (verbose > 1) : print "\ti=",peepz[len(peepz)-1].id, "x=",peepz[len(peepz)-1].x, "y=",peepz[len(peepz)-1].y,"v=",v
 
 
 psutil.Process(os.getpid()).cpu_affinity(cpus)
@@ -208,7 +219,7 @@ blank=l0.grid.copy()
 if (verbose > 0) : print "ADDING AGENTS"
 peepz=[]
 for i in range(nAgents):
-    addAgent(0.1,0.9,0.1,0.9)
+    addAgent(0.1,0.9, 0.1,0.9)
 
 if (verbose > 1) : out.printX(peepz)
 if (verbose > 1) : out.printY(peepz)
@@ -216,15 +227,18 @@ if (verbose > 1) : out.printY(peepz)
 
 for i in range(nSteps):
     if (verbose > 0) : print "TIME STEPPING", i+1
-    timeStep(l0.dt)
-    if (verbose > 0) : out.printX(peepz)
-    if (verbose > 0) : out.printY(peepz)
+    timeStep()
+    if (verbose > 1) : out.printX(peepz)
+    if (verbose > 1) : out.printY(peepz)
     if video:
         out.save_plot(str(i))
 
 #if (verbose > 0) : print "GENERATING PLOT"
 
-out.plotGraphs(11,5, True)
+out.plotGraphs(11,0, True)
+globalJ=globalJ/l0.time
+avgRho=avgRho/nSteps
+print "avgRho=",avgRho,"J=",globalJ
 #if (verbose > 0) : print "SHOWING PLOTS"
 #out.show([2])
 if video :
