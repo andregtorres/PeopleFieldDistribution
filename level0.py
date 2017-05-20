@@ -11,6 +11,7 @@ Nx      = int((dimensions[0])/gridResol) #number of grid points
 Ny      = int((dimensions[1])/gridResol) #number of grid points
 Npoints     = Nx*Ny
 door= (0,Ny/2., cm(78))
+a=2000.
 
 grid    = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
 doorField = np.zeros(Npoints, dtype=np.float64 ).reshape(Nx, Ny)
@@ -21,7 +22,7 @@ time=0
 exitAreaR   = 30 #cm
 dt          = 1 #s
 JBuffer=[]
-rohBuffer=[]
+rhoBuffer=[]
 
 #THREADING
 activeThreads=0
