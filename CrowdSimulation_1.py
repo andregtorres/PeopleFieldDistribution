@@ -55,7 +55,7 @@ if args.video:
     video = True
 if args.exitArea:
     l0.exitAreaR = args.exitArea
-if args.exitArea:
+if args.dt:
     l0.dt = args.dt
 if args.respawn:
     respawn = True
@@ -166,7 +166,7 @@ def timeStep(dt_):
     J=J*dt_
     l0.JBuffer.append(J)
     l0.rohBuffer.append(roh)
-    if (verbose > 1) : print "\t\troh:",roh,"J:", J
+    if (verbose > 0) : print "\troh:",roh,"J:", J
 
     #RESET GRID
     l0.grid=blank.copy()
@@ -210,8 +210,8 @@ peepz=[]
 for i in range(nAgents):
     addAgent(0.1,0.9,0.1,0.9)
 
-if (verbose > 0) : out.printX(peepz)
-if (verbose > 0) : out.printY(peepz)
+if (verbose > 1) : out.printX(peepz)
+if (verbose > 1) : out.printY(peepz)
 
 
 for i in range(nSteps):
@@ -224,9 +224,9 @@ for i in range(nSteps):
 
 #if (verbose > 0) : print "GENERATING PLOT"
 
-out.plotGraphs(5,7)
+out.plotGraphs(11,5, True)
 #if (verbose > 0) : print "SHOWING PLOTS"
-out.show([2])
+#out.show([2])
 if video :
     print " +++++++  VIDEO  ++++++++"
-    out.video_01("outputVideo2", 10)
+    out.video_01("outputVideo2", int(1./l0.dt))
