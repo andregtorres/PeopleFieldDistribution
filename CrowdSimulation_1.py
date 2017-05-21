@@ -21,10 +21,11 @@ nAgents     = 1
 nSteps      = 0
 video       = False
 cpus        = [1,2,3]
-wallPot     =100
+wallPot     = 200
 respawn     = False
 globalJ     =0
 avgRho      =0
+v           = 50
 
 #TERMINAL PARSER
 parser = argparse.ArgumentParser(description='Crowd Simulation 1.')
@@ -43,7 +44,8 @@ parser.add_argument("-R","--respawn", action='store_true',
                     help='Agents respawn')
 parser.add_argument("-p","--potential", type=float,
                     help='Agent potential paramenter')
-
+parser.add_argument("-k","--velocity", type=float,
+                    help='Reference velocity')
 
 args = parser.parse_args()
 if len(sys.argv) < 2:
@@ -65,6 +67,8 @@ if args.respawn:
     respawn = True
 if args.potential:
     l0.a = args.potential
+if args.velocity:
+    v = args.velocity
 
 
 if (verbose > 1) : print "Nx,Ny= ",l0.Nx," , ",l0.Ny
@@ -88,10 +92,10 @@ def SetLims(field_, value1_, value2_):
 
 def setWallField():
     for x, l in enumerate(l0.locked):
-        if (x %50 == 0 and verbose > 1 ): print x
+        if (x %100 == 0 and verbose > 1 ): print x
         for y, point in enumerate(l):
             if point:
-                applyField(x,y,wallPot, 25)
+                applyField(x,y,wallPot, 30)
 
 def applyField(x0,y0,a, ran):
     for x in range(x0-ran,x0 + ran):
@@ -150,15 +154,18 @@ def timeStep():
     if (verbose > 1) : print "\tCOMPUTING NEW COORDINATES"
     q=Queue()
     npeepz=0
+    velocity=0
     for peep in peepz:
         if not peep.safe:
             Process(target=peep.getNewCoordinates, args=(q,npeepz,verbose)).start()
             npeepz+=1
     for i in range(npeepz):
         (putOrder, newX, newY, safe)= q.get()
+        velocity+=(np.sqrt((peepz[putOrder].x-newX)**2+(peepz[putOrder].y-newY)**2)/l0.dt*l0.gridResol)
         peepz[putOrder].x=newX
         peepz[putOrder].y=newY
         peepz[putOrder].safe=safe
+    velocity=velocity/npeepz
 
     #COMPUTE PARAMETERS AND DEAL WITH SAFE
     J=0.
@@ -177,7 +184,8 @@ def timeStep():
     J=J/l0.dt
     l0.JBuffer.append(J)
     l0.rhoBuffer.append(rho)
-    if (verbose > 0) : print "\trho:",rho,"J:", J
+    l0.velocityBuffer.append(velocity)
+    if (verbose > 0) : print "\tv:",velocity,"rho:",rho,"J:", J
 
     #RESET GRID
     l0.grid=blank.copy()
@@ -194,7 +202,7 @@ def addAgent(y1,y2,x1,x2):
         y = random.uniform(y1,y2)
         x = random.uniform(x1,x2)
         if inside(x,y): break
-    v = random.uniform(50,55)
+    #v = random.uniform(50,55)
     peepz.append(Agent(x,y,l0.a,5e-8,v))
     peepz[len(peepz)-1].addToGrid()
     if (verbose > 1) : print "\ti=",peepz[len(peepz)-1].id, "x=",peepz[len(peepz)-1].x, "y=",peepz[len(peepz)-1].y,"v=",v
@@ -205,7 +213,7 @@ psutil.Process(os.getpid()).cpu_affinity(cpus)
 wallField  = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
 SetLims(l0.grid,wallPot, -wallPot)
 SetLims(l0.locked, True, True)
-getDoorField(-wallPot)
+getDoorField(-wallPot/2)
 l0.grid+=l0.doorField
 print "SET WALLFIELD"
 setWallField()
@@ -238,7 +246,7 @@ for i in range(nSteps):
 out.plotGraphs(11,0, True)
 globalJ=globalJ/l0.time
 avgRho=avgRho/nSteps
-print "avgRho=",avgRho,"J=",globalJ
+print "\navgvelocity=",np.mean(l0.velocityBuffer), "avgRho=",avgRho,"J=",globalJ
 #if (verbose > 0) : print "SHOWING PLOTS"
 #out.show([2])
 if video :

@@ -13,7 +13,7 @@ def plot(field,clip):
     fig = plt.figure()
     #plt.contourf(np.transpose(l0.grid))
     if clip:
-        plt.contourf(np.clip(np.transpose(field),0,l0.a/100.))
+        plt.contourf(np.clip(np.transpose(field),0,l0.a/l0.radius/l0.radius))
     else:
         plt.contourf(np.transpose(field))
     plt.colorbar()
@@ -22,7 +22,7 @@ def plot(field,clip):
 #PLOTS FULL GRID AND SAVES PNG
 def save_plot(name_):
     fig = plt.figure(figsize=(l0.dimensions[0]/100,l0.dimensions[1]/100))
-    plt.contourf(np.clip(np.transpose(l0.grid-l0.doorField),0,l0.a/100.))
+    plt.contourf(np.clip(np.transpose(l0.grid-l0.doorField),l0.a/l0.radius/l0.radius*0.5,l0.a/l0.radius/l0.radius*3))
     plt.colorbar()
     plt.grid()
     plt.axes().set_aspect('equal')
@@ -97,14 +97,14 @@ def plotGraphs(n=5, m=0, save=False):
     if m != 0:
         plt.plot(timeN,movingAverage(l0.JBuffer,n),'k-',timeM,movingAverage(l0.JBuffer,m),'k--',alpha=0.7)
     else:
-        plt.plot(timeN,movingAverage(l0.JBuffer,n))
+        plt.plot(timeN,movingAverage(l0.JBuffer,n),'k-')
     ax=plt.subplot(212)
     ax.set_ylabel(r'$\rho (m^{-2})$')
     ax.set_xlabel("t (s)")
     if m != 0:
         plt.plot(timeN,movingAverage(l0.rhoBuffer,n),'k-',timeM,movingAverage(l0.rhoBuffer,m),'k--',alpha=0.7)
     else:
-        plt.plot(timeN,movingAverage(l0.rhoBuffer,n))
+        plt.plot(timeN,movingAverage(l0.rhoBuffer,n),'k-')
     name="aux/JRho_"+str(n)+"_"+str(m)+".png"
     if save: plt.savefig(name, dpi=100)
 

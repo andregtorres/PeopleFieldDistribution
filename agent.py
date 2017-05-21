@@ -20,7 +20,7 @@ class Agent(object):
         self.v = v_/l0.gridResol
         self.grid = np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
         self.safe=False
-        self.radius=10./l0.gridResol
+        self.radius=l0.radius/l0.gridResol
     def __del__(self):
         self.grid=None
 
@@ -56,28 +56,26 @@ class Agent(object):
         #SET AFFINITY
         psutil.Process(os.getpid()).cpu_affinity([1,2,3])
 
-        newX=self.x-l0.gradx[int(round(self.x))][int(round(self.y))]*self.v
+        newX=self.x-l0.gradx[int(round(self.x))][int(round(self.y))]*self.v #grad already multiplyes py dt
         newY=self.y-l0.grady[int(round(self.x))][int(round(self.y))]*self.v
 
         #print (np.sqrt((self.x-newX)**2+(self.y-newY)**2)/l0.dt)
 
-        if newX >= l0.Nx or newX < 0:
+        if int(round(newX)) >= l0.Nx or newX < 0:
             if newX < l0.door[0] and newY > l0.door[1]-l0.door[2]/2. + self.radius/2. and newY < l0.door[1] +l0.door[2]/2.- self.radius/2.:
                 self.safe=True
                 self.grid=np.zeros(l0.Npoints, dtype=np.float64 ).reshape(l0.Nx, l0.Ny)
-                self.newX=0
-                self.newY=0
             else:
-                l0.lockPrint.acquire()
+                if (verbose > 1) :l0.lockPrint.acquire()
                 if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newX= ",newX
                 if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newY= ",newY
-                l0.lockPrint.release()
+                if (verbose > 1) :l0.lockPrint.release()
                 newX = self.x #TODO
-        if newY >= l0.Ny or newY < 0:
-            l0.lockPrint.acquire()
+        if int(round(newY)) >= l0.Ny or newY < 0:
+            if (verbose > 1) :l0.lockPrint.acquire()
             if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newX= ",newX
             if (verbose > 1) :print "\t\t",self.id,"ERROR getNewCoordinates() out of bounds: newY= ",newY
-            l0.lockPrint.release()
+            if (verbose > 1) :l0.lockPrint.release()
             newY = self.y  #TODO
 
         q.put((putOrder,newX,newY,self.safe))
@@ -88,7 +86,7 @@ class Agent(object):
         self.computeGrid()
         q.put((putOrder,self.grid))
     def inExitArea(self):
-        ret=np.sqrt((self.x-l0.door[0])**2+((self.y-l0.door[1]))**2)-l0.exitAreaR*1.2
+        ret=np.sqrt((self.x-l0.door[0])**2+((self.y-l0.door[1]))**2)-l0.cm(l0.exitAreaR)-self.radius/2. #corrective factor
         if ret<=0:
             return True
         else:
