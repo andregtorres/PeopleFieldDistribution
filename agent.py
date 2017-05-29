@@ -86,7 +86,7 @@ class Agent(object):
         self.computeGrid()
         q.put((putOrder,self.grid))
     def inExitArea(self):
-        ret=np.sqrt((self.x-l0.door[0])**2+((self.y-l0.door[1]))**2)-l0.cm(l0.exitAreaR)-self.radius/2. #corrective factor
+        ret=np.sqrt((self.x-l0.door[0])**2+((self.y-l0.door[1]))**2)-l0.cm(l0.exitAreaR)
         if ret<=0:
             return True
         else:
