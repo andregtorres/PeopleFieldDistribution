@@ -21,9 +21,13 @@ def plot(field,clip):
 
 #PLOTS FULL GRID AND SAVES PNG
 def save_plot(name_):
-    fig = plt.figure(figsize=(l0.dimensions[0]/100,l0.dimensions[1]/100))
-    plt.contourf(np.clip(np.transpose(l0.grid-l0.doorField),l0.a/l0.radius/l0.radius*0.5,l0.a/l0.radius/l0.radius*3))
-    plt.colorbar()
+    X=[x*l0.gridResol*0.01 for x in range(l0.Nx)]
+    Y=[x*l0.gridResol*0.01 for x in range(l0.Ny)]
+    fig = plt.figure()
+    plt.axes().set_ylabel("y (m)")
+    plt.axes().set_xlabel("x (m)")
+    plt.contourf(X,Y,np.clip(np.transpose(l0.grid-l0.doorField),0,l0.a/l0.radius/l0.radius*4))
+    plt.colorbar(orientation='horizontal', shrink=0.8)
     plt.grid()
     plt.axes().set_aspect('equal')
     name="aux/png/"+name_+".png"
@@ -93,7 +97,7 @@ def plotGraphs(n=5, m=0, save=False):
     if m != 0: timeM=[x*l0.dt for x in range((m-1)/2,len(l0.JBuffer)-(m-1)/2,1)]
     ax=plt.subplot(211)
     plt.setp(ax.get_xticklabels(), visible=False)
-    ax.set_ylabel(r" J $(s^{-1})$")
+    ax.set_ylabel(r" j $(s^{-1})$")
     if m != 0:
         plt.plot(timeN,movingAverage(l0.JBuffer,n),'k-',timeM,movingAverage(l0.JBuffer,m),'k--',alpha=0.7)
     else:
