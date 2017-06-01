@@ -1,0 +1,100 @@
+A
+-a 50 -s 100 -v 1 -V -R -t 0.1 -p 10000 -k 30
+avgvelocity= 28.7666387944 avgRho= 7.360916118 J= 1.6
+
+B
+-a 50 -s 200 -v 1 -V -R -t 0.1 -p 10000 -k 50
+avgvelocity= 47.6006235255 avgRho= 8.15669083346 J= 3.3
+
+C
+-a 50 -s 200 -v 1 -V -R -t 0.1 -p 8000 -k 50
+avgvelocity= 52.2586482894 avgRho= 8.5346838233 J= 3.15
+
+D
+-a 50 -s 200 -v 1 -V -R -t 0.1 -p 8000 -k 30
+avgvelocity= 28.5434758013 avgRho= 8.15669083346 J= 2.05
+
+E
+-a 80 -s 200 -v 1 -V -R -t 0.1 -p 8000 -k 40
+avgvelocity= 42.4326739233 avgRho= 10.6036980835 J= 4.0
+
+F
+-a 80 -s 200 -v 1 -V -t 0.1 -p 12000 -k 30
+avgvelocity= 26.1639699597 avgRho= 9.11162049201 J= 2.7
+
+G
+-a 80 -s 200 -v 1 -V -t 0.1 -p 12000 -k 50
+avgvelocity= 42.9831935663 avgRho= 8.73362750217 J= 3.8
+
+
+H
+-a 80 -s 200 -v 1 -V -t 0.1 -p 16000 -k 30
+avgvelocity= 24.6171863125 avgRho= 10.2654938294 J= 2.45
+
+I
+-a 80 -s 200 -v 1 -V -t 0.1 -p 16000 -k 50
+avgvelocity= 32.9287871979 avgRho= 7.53996542898 J= 3.55
+
+J
+-a 80 -s 200 -v 1 -V -t 0.1 -p 20000 -k 30
+avgvelocity= 25.8984273924 avgRho= 7.360916118 J= 2.55
+
+K
+-a 80 -s 200 -v 1 -V -t 0.1 -p 20000 -k 40
+avgvelocity= 32.6313239419 avgRho= 7.99753589037 J= 3.05
+
+L
+-a 80 -s 200 -v 1 -V -t 0.1 -p 15000 -k 40
+avgvelocity= 34.7426113406 avgRho= 8.5346838233 J= 2.95
+
+M
+-a 80 -s 200 -v 1 -V -t 0.1 -p 20000 -k 50
+avgvelocity= 40.3582238841 avgRho= 7.75880347573 J= 3.75
+
+N
+Same as J but with r=50 for density
+avgvelocity= 25.2414501733 avgRho= 7.48664852304 J= 2.7
+
+O
+-a 80 -s 200 -v 1 -V -t 0.1 -p 20000 -k 30 -R
+avgvelocity= 26.0915836541 avgRho= 7.2320006141 J= 2.6
+
+P
+-a 80 -s 200 -v 1 -V -t 0.1 -p 25000 -k 40
+avgvelocity= 40.0467323245 avgRho= 8.19966266809 J= 2.6
+
+Q
+-a 80 -s 200 -v 1 -V -R -t 0.1 -p 10000 -k 30 -R
+avgvelocity= 32.6191518262 avgRho= 9.6002261673 J= 3.0
+
+R
+-a 80 -s 400 -v 1 -V -R -t 0.1 -p 20000 -k 30
+avgvelocity= 37.7587678778 avgRho=7.42935274353 J= 2.625
+
+S
+-a 80 -s 200 -v 1 -V -t 0.1 -p 10000 -k 30
+avgvelocity= 26.8029332098 avgRho= 8.67076129965 J= 2.75
+
+T CHANGED WALL POTENTIAL
+-a 80 -s 200 -v 1 -V -t 0.1 -p 10000 -k 30
+avgvelocity= 26.1890400485 avgRho= 8.81081764957 J= 2.75
+
+U SAME WITH DIFFERENT TIME
+-a 80 -s 40 -v 1 -V -t 0.5 -p 10000 -k 30
+avgvelocity= 35.6537301594 avgRho= 9.74028251722 J= 1.5
+
+W CHANGED LINEAR COEFICIENT OF DOOR
+-a 80 -s 200 -v 1 -V -t 0.1 -p 10000 -k 30
+avgvelocity= 26.1890400485 avgRho= 8.81081764957 J= 2.75
+
+V Reverted
+-a 80 -s 200 -v 1 -V -t 0.1 -p 10000 -k 30
+avgvelocity= 24.894738267 avgRho= 8.1741978772 J= 2.4580
+
+Y OBSTACLE
+-a 50 -s 200 -v 1 -V -R -t 0.1 -p 10000 -k 30
+avgvelocity= 26.5835181932 avgRho= 6.69724000531 J= 1.65
+
+Z CIRCULAR OBSTACLE
+-a 50 -s 200 -v 1 -V -R -t 0.1 -p 10000 -k 30
+avgvelocity= 30.0920715936 avgRho= 6.40439491002 J= 1.65
